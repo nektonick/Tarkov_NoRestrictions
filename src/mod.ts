@@ -83,7 +83,7 @@ class NoRestrictionsMod implements IPostDBLoadMod {
             this.processSecureContainer(item);
         }
 
-        if (parent_id in [BaseClasses.FACECOVER, BaseClasses.HEADWEAR, BaseClasses.HEADPHONES]) {
+        if (parent_id == BaseClasses.FACECOVER || parent_id == BaseClasses.HEADWEAR || parent_id == BaseClasses.HEADPHONES) {
             this.processHeadgearCover(item);
         }
     }
@@ -102,6 +102,20 @@ class NoRestrictionsMod implements IPostDBLoadMod {
 
     private processHeadgearCover(headgear: ITemplateItem) {
         this.removeAllRestrictionsFromProps(headgear._props)
+        this.removeItemFromConflicts(headgear)
+    }
+
+    private removeItemFromConflicts(item_to_remove_from_conflicts: ITemplateItem) {
+        const items = this.getItems();
+        for (const item_id in items) {
+            const item = items[item_id];
+            const props = item._props
+            if (!props.ConflictingItems) {
+                continue;
+            }
+
+            props.ConflictingItems = props.ConflictingItems.filter(item => item !== item_to_remove_from_conflicts._id)
+        }
     }
 
     private removeAllRestrictionsFromProps(props: Props) {
