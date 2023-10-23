@@ -49,6 +49,15 @@ class NoRestrictionsMod implements IPostDBLoadMod {
         this.logger = container.resolve<ILogger>("WinstonLogger");
 
         this.processAllItems();
+        this.removeInRaidRestrictions();
+    }
+
+    private removeInRaidRestrictions() {
+        const config = this.getTables().globals?.config;
+        if (!config) {
+            return;
+        }
+        config.RestrictionsInRaid = []
     }
 
     private processAllItems() {
