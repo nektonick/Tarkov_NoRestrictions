@@ -22,8 +22,5 @@
         "tsyringe": "4.8.0",
         "typescript": "5.1.6",
         "winston": "^3.9"
-    },
-    "dependencies": {
-        "zod": "^3.22.4"
     }
 }

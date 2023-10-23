@@ -5,10 +5,8 @@ import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { JsonUtil } from "@spt-aki/utils/JsonUtil";
 import { IDatabaseTables } from "@spt-aki/models/spt/server/IDatabaseTables";
-import { Item } from "@spt-aki/models/eft/common/tables/IItem";
-import { SecuredContainers } from "@spt-aki/models/enums/ContainerTypes"
-import ModConfig = require("../config/config.json");
-import { ITemplateItem, Slot } from "@spt-aki/models/eft/common/tables/ITemplateItem";
+import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
+import { Grid, GridFilter, ITemplateItem, Props } from "@spt-aki/models/eft/common/tables/ITemplateItem";
 
 
 class NoRestrictionsMod implements IPostDBLoadMod {
@@ -40,13 +38,6 @@ class NoRestrictionsMod implements IPostDBLoadMod {
         return items;
     }
 
-    private getLogger(): ILogger {
-        if (!this.logger) {
-            throw Error(`[${this.mod}]: logger is missing`);
-        }
-        return this.logger;
-    }
-
     /**
      * Majority of trader-related work occurs after the aki database has been loaded but prior to SPT code being run
      * @param container Dependency container
@@ -57,7 +48,90 @@ class NoRestrictionsMod implements IPostDBLoadMod {
         this.tables = databaseServer.getTables();
         this.logger = container.resolve<ILogger>("WinstonLogger");
 
-        // TODO
+        this.processAllItems();
+    }
+
+    private processAllItems() {
+        const items = this.getItems();
+        for (const item_id in items) {
+            const item = items[item_id];
+            this.processSingleItem(item)
+        }
+    }
+
+    private processSingleItem(item: ITemplateItem) {
+        const parent_id = item._parent
+
+        if (parent_id === BaseClasses.BACKPACK) {
+            this.processBackpack(item);
+        }
+
+        if (parent_id === BaseClasses.SIMPLE_CONTAINER) {
+            this.processSimpleContainer(item);
+        }
+
+        if (parent_id === BaseClasses.MOB_CONTAINER) {
+            this.processSecureContainer(item);
+        }
+
+        if (parent_id in [BaseClasses.FACECOVER, BaseClasses.HEADWEAR, BaseClasses.HEADPHONES]) {
+            this.processHeadgearCover(item);
+        }
+    }
+
+    private processBackpack(backpack: ITemplateItem) {
+        this.removeAllRestrictionsFromProps(backpack._props)
+    }
+
+    private processSimpleContainer(container: ITemplateItem) {
+        this.removeAllRestrictionsFromProps(container._props)
+    }
+
+    private processSecureContainer(secure_container: ITemplateItem) {
+        this.removeAllRestrictionsFromProps(secure_container._props)
+    }
+
+    private processHeadgearCover(headgear: ITemplateItem) {
+        this.removeAllRestrictionsFromProps(headgear._props)
+    }
+
+    private removeAllRestrictionsFromProps(props: Props) {
+        props.BlocksEarpiece = false;
+        props.BlocksEyewear = false;
+        props.BlocksFaceCover = false;
+        props.BlocksHeadwear = false;
+
+        props.CanPutIntoDuringTheRaid = true;
+        // props.CanRequireOnRagfair = true;
+        // props.CanSellOnRagfair = true;
+        props.CantRemoveFromSlotsDuringRaid = []
+        props.ConflictingItems = [] // This might generate errors!
+        props.DiscardLimit = -1;
+        props.DiscardingBlock = false;
+        // props.IsLockedafterEquip = false; // Strange one. Used mostly for player pockets
+        // props.IsSpecialSlotOnly = false; // make sense only for item_spec_radiotransmitter
+        props.IsUndiscardable = false;
+        props.IsUngivable = false;
+        props.IsUnremovable = false;
+        props.IsUnsaleable = false;
+        // props.Unlootable = false; // This probably makes you lose your knife, secured container, spec slotes and armbank
+        this.removeFiltersFromGrids(props.Grids);
+    }
+
+    private removeFiltersFromGrids(grids: Grid[] | undefined) {
+        if (!grids) {
+            return;
+        }
+        for (const grid of grids) {
+            grid._props.filters = [this.getGridFilterWithAllItemsAllowed()]
+        }
+    }
+
+    private getGridFilterWithAllItemsAllowed(): GridFilter {
+        return {
+            Filter: [BaseClasses.ITEM],
+            ExcludedFilter: []
+        }
     }
 }
 
