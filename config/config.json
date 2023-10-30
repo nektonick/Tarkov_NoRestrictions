@@ -1,0 +1,106 @@
+{
+    "BACKPACK": {
+        "enabled": true,
+        "rescrictions_to_remove": {
+            "CanPutIntoDuringTheRaid": true,
+            "CantRemoveFromSlotsDuringRaid": true,
+            "ConflictingItems": true,
+            "DiscardLimit": true,
+            "DiscardingBlock": true,
+            "IsUndiscardable": true,
+            "IsUngivable": true,
+            "IsUnremovable": true,
+            "IsUnsaleable": true,
+            "itemsFilter": true
+        }
+    },
+    "SIMPLE_CONTAINER": {
+        "enabled": true,
+        "rescrictions_to_remove": {
+            "CanPutIntoDuringTheRaid": true,
+            "CantRemoveFromSlotsDuringRaid": true,
+            "ConflictingItems": true,
+            "DiscardLimit": true,
+            "DiscardingBlock": true,
+            "IsUndiscardable": true,
+            "IsUngivable": true,
+            "IsUnremovable": true,
+            "IsUnsaleable": true,
+            "itemsFilter": true
+        }
+
+    },
+    "MOB_CONTAINER" : {
+        "enabled": true,
+        "rescrictions_to_remove": {
+            "CanPutIntoDuringTheRaid": true,
+            "CantRemoveFromSlotsDuringRaid": true,
+            "ConflictingItems": true,
+            "DiscardLimit": true,
+            "DiscardingBlock": true,
+            "IsUndiscardable": true,
+            "IsUngivable": true,
+            "IsUnremovable": true,
+            "IsUnsaleable": true,
+            "itemsFilter": true
+        }
+    },
+    "FACECOVER": {
+        "enabled": true,
+        "rescrictions_to_remove": {
+            "BlocksEarpiece": true,
+            "BlocksEyewear": true,
+            "BlocksFaceCover": true,
+            "BlocksHeadwear": true,
+            "CanPutIntoDuringTheRaid": true,
+            "CantRemoveFromSlotsDuringRaid": true,
+            "ConflictingItems": true,
+            "DiscardLimit": true,
+            "DiscardingBlock": true,
+            "IsUndiscardable": true,
+            "IsUngivable": true,
+            "IsUnremovable": true,
+            "IsUnsaleable": true,
+            "itemsFilter": true
+        }
+    },
+    "HEADWEAR": {
+        "enabled": true,
+        "rescrictions_to_remove": {
+            "BlocksEarpiece": true,
+            "BlocksEyewear": true,
+            "BlocksFaceCover": true,
+            "BlocksHeadwear": true,
+            "CanPutIntoDuringTheRaid": true,
+            "CantRemoveFromSlotsDuringRaid": true,
+            "ConflictingItems": true,
+            "DiscardLimit": true,
+            "DiscardingBlock": true,
+            "IsUndiscardable": true,
+            "IsUngivable": true,
+            "IsUnremovable": true,
+            "IsUnsaleable": true,
+            "itemsFilter": true
+        }
+    },
+    "HEADPHONES": {
+        "enabled": true,
+        "rescrictions_to_remove": {
+            "BlocksEarpiece": true,
+            "BlocksEyewear": true,
+            "BlocksFaceCover": true,
+            "BlocksHeadwear": true,
+            "CanPutIntoDuringTheRaid": true,
+            "CantRemoveFromSlotsDuringRaid": true,
+            "ConflictingItems": true,
+            "DiscardLimit": true,
+            "DiscardingBlock": true,
+            "IsUndiscardable": true,
+            "IsUngivable": true,
+            "IsUnremovable": true,
+            "IsUnsaleable": true,
+            "itemsFilter": true
+        }
+    },
+    "RemoveRestrictionsInRaid": true
+}

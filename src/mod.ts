@@ -1,18 +1,35 @@
 import { DependencyContainer } from "tsyringe";
 // SPT types
 import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
-import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
-import { JsonUtil } from "@spt-aki/utils/JsonUtil";
 import { IDatabaseTables } from "@spt-aki/models/spt/server/IDatabaseTables";
 import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
 import { Grid, GridFilter, ITemplateItem, Props } from "@spt-aki/models/eft/common/tables/ITemplateItem";
 
+import ConfigJson from "../config/config.json"
+
+
+type RemoveRestrictionsOptions = {
+    BlocksEarpiece?: boolean
+    BlocksEyewear?: boolean
+    BlocksFaceCover?: boolean
+    BlocksHeadwear?: boolean
+
+    CanPutIntoDuringTheRaid?: boolean
+    CantRemoveFromSlotsDuringRaid?: boolean
+    ConflictingItems?: boolean
+    DiscardLimit?: boolean
+    DiscardingBlock?: boolean
+    
+    IsUndiscardable?: boolean
+    IsUngivable?: boolean
+    IsUnremovable?: boolean
+    IsUnsaleable?: boolean
+    itemsFilter?: boolean
+}
 
 class NoRestrictionsMod implements IPostDBLoadMod {
     private mod: string = "NoRestrictions"
-    private logger: null | ILogger = null
-    private jsonUtil: null | JsonUtil = null
     private tables: null | IDatabaseTables = null
 
     private getTables(): IDatabaseTables {
@@ -43,16 +60,18 @@ class NoRestrictionsMod implements IPostDBLoadMod {
      * @param container Dependency container
      */
     public postDBLoad(container: DependencyContainer): void {
-        this.jsonUtil = container.resolve<JsonUtil>("JsonUtil");
         const databaseServer = container.resolve<DatabaseServer>("DatabaseServer");
         this.tables = databaseServer.getTables();
-        this.logger = container.resolve<ILogger>("WinstonLogger");
 
         this.processAllItems();
         this.removeInRaidRestrictions();
     }
 
     private removeInRaidRestrictions() {
+        if (!(ConfigJson.RemoveRestrictionsInRaid === true)) {
+            return;
+        }
+
         const config = this.getTables().globals?.config;
         if (!config) {
             return;
@@ -71,38 +90,125 @@ class NoRestrictionsMod implements IPostDBLoadMod {
     private processSingleItem(item: ITemplateItem) {
         const parent_id = item._parent
 
-        if (parent_id === BaseClasses.BACKPACK) {
+        if (parent_id === BaseClasses.BACKPACK && ConfigJson.BACKPACK.enabled === true) {
             this.processBackpack(item);
         }
 
-        if (parent_id === BaseClasses.SIMPLE_CONTAINER) {
+        if (parent_id === BaseClasses.SIMPLE_CONTAINER && ConfigJson.SIMPLE_CONTAINER.enabled === true) {
             this.processSimpleContainer(item);
         }
 
-        if (parent_id === BaseClasses.MOB_CONTAINER) {
+        if (parent_id === BaseClasses.MOB_CONTAINER && ConfigJson.MOB_CONTAINER.enabled === true) {
             this.processSecureContainer(item);
         }
 
-        if (parent_id == BaseClasses.FACECOVER || parent_id == BaseClasses.HEADWEAR || parent_id == BaseClasses.HEADPHONES) {
-            this.processHeadgearCover(item);
+        if (parent_id == BaseClasses.FACECOVER && ConfigJson.FACECOVER.enabled === true) {
+            this.processFaceCover(item);
+        }
+
+        if (parent_id == BaseClasses.HEADWEAR && ConfigJson.HEADWEAR.enabled === true) {
+            this.processHeadwear(item);
+        }
+
+        if (parent_id == BaseClasses.HEADPHONES && ConfigJson.HEADPHONES.enabled === true) {
+            this.processHeadphones(item);
         }
     }
 
     private processBackpack(backpack: ITemplateItem) {
-        this.removeAllRestrictionsFromProps(backpack._props)
+        const options = ConfigJson.BACKPACK.rescrictions_to_remove;
+        this.removeAllRestrictionsFromProps(backpack._props, options)
     }
 
     private processSimpleContainer(container: ITemplateItem) {
-        this.removeAllRestrictionsFromProps(container._props)
+        const options = ConfigJson.SIMPLE_CONTAINER.rescrictions_to_remove;
+        this.removeAllRestrictionsFromProps(container._props, options)
     }
 
     private processSecureContainer(secure_container: ITemplateItem) {
-        this.removeAllRestrictionsFromProps(secure_container._props)
+        const options = ConfigJson.MOB_CONTAINER.rescrictions_to_remove;
+        this.removeAllRestrictionsFromProps(secure_container._props, options)
     }
 
-    private processHeadgearCover(headgear: ITemplateItem) {
-        this.removeAllRestrictionsFromProps(headgear._props)
-        this.removeItemFromConflicts(headgear)
+    private processFaceCover(headgear: ITemplateItem) {
+        const options = ConfigJson.FACECOVER.rescrictions_to_remove;
+        this.removeAllRestrictionsFromProps(headgear._props, options)
+        
+        if (options.ConflictingItems === true) {
+            this.removeItemFromConflicts(headgear)
+        }
+    }
+
+    private processHeadwear(headgear: ITemplateItem) {
+        const options = ConfigJson.HEADWEAR.rescrictions_to_remove;
+        this.removeAllRestrictionsFromProps(headgear._props, options)
+        if (options.ConflictingItems === true) {
+            this.removeItemFromConflicts(headgear)
+        }
+    }
+
+    private processHeadphones(headgear: ITemplateItem) {
+        const options = ConfigJson.HEADPHONES.rescrictions_to_remove;
+        this.removeAllRestrictionsFromProps(headgear._props, options)
+        if (options.ConflictingItems === true) {
+            this.removeItemFromConflicts(headgear)
+        }
+    }
+
+    private removeAllRestrictionsFromProps(props: Props, options: RemoveRestrictionsOptions) {
+        if (options.BlocksEarpiece === true) {
+            props.BlocksEarpiece = false;
+        }
+        if (options.BlocksEyewear === true) {
+            props.BlocksEarpiece = false;
+        }
+        if (options.BlocksFaceCover === true) {
+            props.BlocksEarpiece = false;
+        }
+        if (options.BlocksHeadwear === true) {
+            props.BlocksEarpiece = false;
+        }
+        if (options.CanPutIntoDuringTheRaid === true) {
+            props.CanPutIntoDuringTheRaid = true;
+        }
+
+        // props.CanRequireOnRagfair = true;
+        // props.CanSellOnRagfair = true;
+        
+        if (options.CantRemoveFromSlotsDuringRaid === true) {
+            props.CantRemoveFromSlotsDuringRaid = []
+        }
+        if (options.ConflictingItems === true) {
+            props.ConflictingItems = [] // This might generate errors!
+        }
+        if (options.DiscardLimit === true) {
+            props.DiscardLimit = -1;
+        }
+        if (options.DiscardingBlock === true) {
+            props.DiscardingBlock = false;
+        }
+
+        // props.IsLockedafterEquip = false; // Strange one. Used mostly for player pockets
+        // props.IsSpecialSlotOnly = false; // make sense only for item_spec_radiotransmitter
+        
+        if (options.IsUndiscardable === true) {
+            props.IsUndiscardable = false;
+        }
+        if (options.IsUngivable === true) {
+            props.IsUngivable = false;
+        }
+        if (options.IsUnremovable === true) {
+            props.IsUnremovable = false;
+        }
+        if (options.IsUnsaleable === true) {
+            props.IsUnsaleable = false;
+        }
+
+        // props.Unlootable = false; // This probably makes you lose your knife, secured container, spec slotes and armbank
+
+        if (options.itemsFilter === true) {
+            this.removeFiltersFromGrids(props.Grids);
+        }
     }
 
     private removeItemFromConflicts(item_to_remove_from_conflicts: ITemplateItem) {
@@ -116,29 +222,6 @@ class NoRestrictionsMod implements IPostDBLoadMod {
 
             props.ConflictingItems = props.ConflictingItems.filter(item => item !== item_to_remove_from_conflicts._id)
         }
-    }
-
-    private removeAllRestrictionsFromProps(props: Props) {
-        props.BlocksEarpiece = false;
-        props.BlocksEyewear = false;
-        props.BlocksFaceCover = false;
-        props.BlocksHeadwear = false;
-
-        props.CanPutIntoDuringTheRaid = true;
-        // props.CanRequireOnRagfair = true;
-        // props.CanSellOnRagfair = true;
-        props.CantRemoveFromSlotsDuringRaid = []
-        props.ConflictingItems = [] // This might generate errors!
-        props.DiscardLimit = -1;
-        props.DiscardingBlock = false;
-        // props.IsLockedafterEquip = false; // Strange one. Used mostly for player pockets
-        // props.IsSpecialSlotOnly = false; // make sense only for item_spec_radiotransmitter
-        props.IsUndiscardable = false;
-        props.IsUngivable = false;
-        props.IsUnremovable = false;
-        props.IsUnsaleable = false;
-        // props.Unlootable = false; // This probably makes you lose your knife, secured container, spec slotes and armbank
-        this.removeFiltersFromGrids(props.Grids);
     }
 
     private removeFiltersFromGrids(grids: Grid[] | undefined) {
